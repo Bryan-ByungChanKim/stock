@@ -1,1 +1,53 @@
 # stock
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>My Stock Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; background-color: #f6f8fa; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .change { font-size: 18px; }
+        .up { color: #d73a49; } /* 상승 (한국 기준 빨강) */
+        .down { color: #0366d6; } /* 하락 (한국 기준 파랑) */
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 id="stock-name">삼성전자 (005930)</h2>
+    <div id="current-price" class="price">로딩 중...</div>
+    <div id="comparison" class="change">--</div>
+    <p style="font-size: 12px; color: gray;">120일 전 대비 상승률</p>
+</div>
+
+<script>
+async function getStockData(ticker) {
+    const symbol = ticker + ".KS"; // 한국 코스피 기준
+    // Yahoo Finance 데이터를 가져오기 위한 유효한 프록시/API 경로 (예시용)
+    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=150d`);
+    const data = await response.json();
+    
+    const result = data.chart.result[0];
+    const prices = result.indicators.quote[0].close;
+    const timestamps = result.timestamp;
+
+    const currentPrice = prices[prices.length - 1];
+    // 약 120일 전 데이터 추출 (영업일 기준이므로 뒤에서 약 120번째)
+    const oldPrice = prices[prices.length - 120] || prices[0]; 
+    
+    const changePercent = ((currentPrice - oldPrice) / oldPrice * 100).toFixed(2);
+    const colorClass = changePercent >= 0 ? 'up' : 'down';
+    const sign = changePercent >= 0 ? '▲' : '▼';
+
+    document.getElementById('current-price').innerText = `${currentPrice.toLocaleString()} KRW`;
+    document.getElementById('comparison').innerHTML = `<span class="${colorClass}">${sign} ${Math.abs(changePercent)}%</span>`;
+}
+
+// 삼성전자 종목코드 입력
+getStockData('005930');
+</script>
+
+</body>
+</html>
